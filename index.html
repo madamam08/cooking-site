@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Let's cook together!</title>
+<style>
+* { box-sizing: border-box; margin:0; padding:0; }
+html, body { width:100%; height:100%; font-family: Arial, sans-serif; overflow:hidden; }
+
+/* --- Первая страница --- */
+.wrapper { display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; background-image: url('images/fon.svg'); background-size: cover; background-repeat: no-repeat; background-position: center; }
+.timer { width:500px; height:70px; background:#ECD8C1; display:flex; justify-content:center; align-items:center; font-size:40px; font-weight:bold; color:#8F7961; border-radius:15px; margin-bottom:20px; }
+.image img { width:462px; height:464px; margin-bottom:20px; }
+.button-label { font-size:20px; color:#FCE2C7; text-align:center; margin-bottom:4px; }
+.button-container { width:350px; height:95px; background:#84BEE4; display:flex; justify-content:center; align-items:center; border-radius:15px; box-shadow:0 4px 8px rgba(0,0,0,0.2); margin-bottom:20px; }
+.start-btn { background:none; border:none; font-size:48px; font-weight:bold; color:#365169; cursor:pointer; letter-spacing:1px; }
+
+/* --- Вторая страница --- */
+.cooking-page { position:absolute; top:0; left:0; width:100%; height:100%; background-image:url("images/fon1.svg"); background-size:cover; background-repeat:no-repeat; background-position:center; display:none; justify-content:center; align-items:center; overflow:hidden; }
+.cooking-timer { position:absolute; top:20px; left:50%; transform:translateX(-50%); width:500px; height:70px; background:#ECD8C1; display:flex; justify-content:center; align-items:center; font-size:40px; font-weight:bold; color:#8F7961; border-radius:15px; z-index:10; }
+.grains-area { position:absolute; top:0; left:50%; transform:translateX(-50%); width:274px; height:440px; overflow:hidden; z-index:3; pointer-events:none; }
+.grain { position:absolute; animation: fall linear forwards; }
+@keyframes fall { 0% { transform:translateY(0); opacity:1; } 100% { transform:translateY(600px); opacity:0; } }
+.pot { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); width:590px; height:390px; z-index:2; }
+.text-line { position:absolute; font-size:40px; font-weight:bold; opacity:0; color:#FFFFFF; z-index:5; }
+.line1 { top:200px; left:79%; }
+.line2 { top:300px; right:64%; }
+.line3 { top:400px; left:67%; }
+
+/* --- Третья страница --- */
+.final-page { display:none; position:absolute; top:0; left:0; width:100%; height:100%; justify-content:center; align-items:center; flex-direction:column; background: linear-gradient(to bottom, #FFF0D1, #A6D0EB); overflow:hidden; }
+.final-image-container { position:relative; width:778px; height:574px; display:flex; justify-content:center; align-items:center; }
+.final-image { position:relative; width:778px; height:574px; object-fit:contain; z-index:1; display:block; }
+.final-gif { position:absolute; top:0; left:0; width:894px; height:616px; object-fit:contain; z-index:2; pointer-events:none; }
+.final-text { margin-top:20px; width:439px; height:113px; background: rgba(135,206,250,0.6); border-radius:15px; font-size:36px; font-weight:200; color:#ffffff; text-align:center; display:flex; justify-content:center; align-items:center; line-height:1.2; font-family:'Arial', sans-serif; }
+
+/* --- Canvas для конфетти --- */
+#confetti { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:30; }
+
+/* --- Модальное сообщение --- */
+.modal { position:absolute; top:0; left:0; width:100%; height:100%; backdrop-filter: blur(8px); background: rgba(0,0,0,0.3); display:none; justify-content:center; align-items:center; z-index:100; }
+.modal-content { position:relative; width:900px; height:600px; }
+.triangle-photo { position:absolute; top:72px; left:50%; transform:translateX(-50%); width:490px; height:293px; border-radius:15px; object-fit:cover; }
+.rect-main { position:absolute; top:364px; left:50%; transform:translateX(-50%); width:600px; height:120px; background:#D9D9D9; display:flex; justify-content:center; align-items:center; font-size:40px; font-weight:bold; color:#365169; border-radius:15px; text-align:center; padding:0 20px; }
+.rect-btn { position:absolute; width:161px; height:71px; background:#D9D9D9; display:flex; justify-content:center; align-items:center; font-size:40px; font-weight:bold; color:#365169; cursor:pointer; border-radius:15px; }
+.rect-yes { top:513px; left:calc(50% - 200px); }
+.rect-no { top:513px; left:calc(50% + 40px); }
+</style>
+</head>
+<body>
+
+<!-- Первая страница -->
+<div class="wrapper" id="start-page">
+  <div class="timer">Time 01:00</div>
+  <div class="image">
+    <img src="images/plate_porridge.svg.svg" alt="Первая страница">
+  </div>
+  <div class="button-label">Let's Cook Together!</div>
+  <div class="button-container">
+    <button class="start-btn" id="start-btn">START</button>
+  </div>
+</div>
+
+<!-- Вторая страница -->
+<div class="cooking-page" id="cooking-page">
+  <div class="cooking-timer">
+    <span class="timer-label">Time</span>
+    <span id="timer">00:00</span>
+  </div>
+  <div class="grains-area" id="grains-area"></div>
+  <img src="images/pot.svg" alt="Pot" class="pot">
+  <div class="text-line line1">Wait...</div>
+  <div class="text-line line2">It'll be delicious!</div>
+  <div class="text-line line3">Just a little bit longer...</div>
+</div>
+
+<!-- Третья страница -->
+<div class="final-page" id="final-page">
+  <canvas id="confetti"></canvas>
+  <div class="final-image-container">
+    <img src="images/pot_final.svg" class="final-image" alt="Final Pot SVG">
+    <img src="images/pot_final.gif" class="final-gif" alt="Final Pod GIF">
+  </div>
+  <div class="final-text">Done!<br>Bon Appétit!</div>
+</div>
+
+<!-- Модальное сообщение -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <img src="images/triangle_photo.png" alt="Triangle" class="triangle-photo">
+    <div class="rect-main">Has the water boiled?</div>
+    <div class="rect-btn rect-yes">YES</div>
+    <div class="rect-btn rect-no">NO</div>
+  </div>
+</div>
+
+<script>
+const startBtn = document.getElementById("start-btn");
+const startPage = document.getElementById("start-page");
+const cookingPage = document.getElementById("cooking-page");
+const finalPage = document.getElementById("final-page");
+const modal = document.getElementById("modal");
+
+// Модалка
+startBtn.addEventListener("click", () => { modal.style.display="flex"; });
+document.querySelector(".rect-yes").addEventListener("click", () => {
+  modal.style.display="none";
+  startPage.style.display="none";
+  cookingPage.style.display="flex";
+});
+document.querySelector(".rect-no").addEventListener("click", () => {
+  modal.style.display="none";
+  startPage.style.display="flex";
+  cookingPage.style.display="none";
+});
+
+// Таймер 60 секунд
+let time = 60;
+const timerElement = document.getElementById("timer");
+function updateTimer() {
+  let minutes = Math.floor(time/60);
+  let seconds = time%60;
+  timerElement.textContent = String(minutes).padStart(2,"0")+":"+String(seconds).padStart(2,"0");
+  if(time>0) time--; else showFinalPage();
+}
+setInterval(updateTimer,1000);
+updateTimer();
+
+// Крупинки
+const grainsArea = document.getElementById("grains-area");
+function createGrain() {
+  const grain = document.createElement("img");
+  grain.src="images/crop.png";
+  grain.classList.add("grain");
+  const width = 10 + Math.random()*20;
+  const height = 10 + Math.random()*20;
+  grain.style.width = width + "px";
+  grain.style.height = height + "px";
+  const centerX = grainsArea.clientWidth / 2;
+  let offset = (Math.random() - 0.5) * grainsArea.clientWidth * Math.random();
+  const x = centerX + offset;
+  grain.style.left = x + "px";
+  grain.style.top = "0px";
+  const duration = 2 + Math.random()*3;
+  grain.style.animationDuration = duration + "s";
+  grainsArea.appendChild(grain);
+  setTimeout(()=>grain.remove(), duration * 1000);
+}
+setInterval(createGrain, 30);
+
+// Текстовые линии второй страницы
+const lines=[document.querySelector('.line1'), document.querySelector('.line2'), document.querySelector('.line3')];
+let currentLine=0, elapsed=0;
+const intervalTime=10000;
+function showNextLine() {
+  lines.forEach(line=>line.style.opacity=0);
+  lines[currentLine].style.opacity=1;
+  currentLine=(currentLine+1)%lines.length;
+  elapsed+=intervalTime;
+  if(elapsed>=60*1000) lines.forEach(line=>line.style.opacity=0);
+}
+showNextLine();
+setInterval(showNextLine,intervalTime);
+
+// Показ финальной страницы
+function showFinalPage() {
+  cookingPage.style.display="none";
+  finalPage.style.display="flex";
+}
+</script>
+
+<!-- --- Конфетти код --- -->
+<script>
+const canvas = document.getElementById('confetti');
+const ctx = canvas.getContext('2d', { alpha: true });
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const confettiCount = 200;
+const confetti = [];
+
+for (let i = 0; i < confettiCount; i++) {
+  confetti.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    r: Math.random() * 6 + 4,
+    d: Math.random() * confettiCount,
+    tilt: Math.floor(Math.random() * 10) - 10,
+    tiltAngleIncremental: Math.random() * 0.07 + .05,
+    tiltAngle: 0,
+    shine: Math.random()
+  });
+}
+
+function drawConfetti() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  confetti.forEach((c, i) => {
+    let gradient = ctx.createLinearGradient(c.x, c.y, c.x + c.r, c.y + c.r);
+    gradient.addColorStop(0, "gold");
+    gradient.addColorStop(0.5, c.shine > 0.5 ? "white" : "#FFD700");
+    gradient.addColorStop(1, "goldenrod");
+
+    ctx.beginPath();
+    ctx.lineWidth = c.r;
+    ctx.strokeStyle = gradient;
+    ctx.moveTo(c.x + c.tilt + c.r / 2, c.y);
+    ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r / 2);
+    ctx.stroke();
+  });
+
+  updateConfetti();
+}
+
+function updateConfetti() {
+  confetti.forEach((c, i) => {
+    c.tiltAngle += c.tiltAngleIncremental;
+    c.y += (Math.cos(c.d) + 3 + c.r / 2) / 2;
+    c.x += Math.sin(c.d);
+    c.tilt = Math.sin(c.tiltAngle - i / 3) * 15;
+
+    if (Math.random() > 0.97) {
+      c.shine = Math.random();
+    }
+
+    if (c.y > canvas.height) {
+      c.x = Math.random() * canvas.width;
+      c.y = -20;
+    }
+  });
+}
+
+(function animate() {
+  requestAnimationFrame(animate);
+  drawConfetti();
+})();
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
